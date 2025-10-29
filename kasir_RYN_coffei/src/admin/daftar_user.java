@@ -8,13 +8,124 @@ package admin;
  *
  * @author Acer Aspire Lite 15
  */
+import config.KoneksiDB;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 public class daftar_user extends javax.swing.JPanel {
 
     /**
      * Creates new form kategoti
      */
+    private DefaultTableModel tabModel;
+    // =======================
+    
+    /**
+     * Creates new form kategoti
+     */
     public daftar_user() {
         initComponents();
+        
+        // ===== PANGGILAN METHOD BARU =====
+        setupTabel();       // Siapkan kolom tabel
+        loadTypeUser();     // Isi ComboBox
+        tampilData();       // Tampilkan data ke tabel
+        resetForm();        // Kosongkan form dan buat ID otomatis
+        // =================================
+    }
+    
+    // ===== METHOD BARU: Menyiapkan Tabel =====
+    private void setupTabel() {
+        tabModel = new DefaultTableModel();
+        tabModel.addColumn("NO.");
+        tabModel.addColumn("ID USER");
+        tabModel.addColumn("USERNAME");
+        tabModel.addColumn("PASSWORD"); // Lihat catatan keamanan di bawah
+        tabModel.addColumn("TYPE USER");
+        
+        tabel_daftar_user.setModel(tabModel);
+        
+        // Atur lebar kolom
+        tabel_daftar_user.getColumnModel().getColumn(0).setMaxWidth(40);
+        tabel_daftar_user.getColumnModel().getColumn(1).setMinWidth(70);
+    }
+    
+    // ===== METHOD BARU: Mengisi ComboBox (Fitur 1) =====
+    private void loadTypeUser() {
+        cb_type_user.removeAllItems(); // Kosongkan item default
+        cb_type_user.addItem("admin");
+        cb_type_user.addItem("kasir");
+    }
+    
+    // ===== METHOD BARU: Tampil Data (Fitur 2) =====
+    private void tampilData() {
+        tabModel.setRowCount(0); // Hapus data lama
+        
+        String sql = "SELECT * FROM data_user ORDER BY id ASC";
+        
+        try (Connection conn = KoneksiDB.getKoneksi();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            int no = 1;
+            while(rs.next()){
+                tabModel.addRow(new Object[]{
+                    no++,
+                    rs.getInt("id"),
+                    rs.getString("username"),
+                    rs.getString("password"), // Menampilkan password adalah tidak aman
+                    rs.getString("type_user")
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Terjadi error saat memuat data user: " + e.getMessage(), 
+                "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // ===== METHOD BARU: Reset Form =====
+    private void resetForm() {
+        tf_id_user.setText("");
+        tf_id_user.setEditable(false); // ID tidak bisa diedit
+        
+        tf_username.setText("");
+        tf_password.setText("");
+        
+        if (cb_type_user.getItemCount() > 0) {
+            cb_type_user.setSelectedIndex(0); // Set default ke "admin"
+        }
+        
+        btn_simpan.setText("SIMPAN");
+        buatIdOtomatis(); // Panggil method pembuat ID di akhir
+    }
+    
+    // ===== METHOD BARU: ID Otomatis (Fitur 1) =====
+    private void buatIdOtomatis() {
+        // ID ini hanya untuk TAMPILAN. Saat INSERT, kita tetap mengandalkan auto-increment DB
+        String sql = "SELECT MAX(id) AS id_terakhir FROM data_user";
+        
+        try (Connection conn = KoneksiDB.getKoneksi();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                int idTerakhir = rs.getInt("id_terakhir");
+                int idBaru = idTerakhir + 1;
+                tf_id_user.setText(String.valueOf(idBaru));
+            } else {
+                tf_id_user.setText("1"); // Jika tabel kosong
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Gagal membuat ID User otomatis: " + e.getMessage(), 
+                "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**
@@ -29,24 +140,13 @@ public class daftar_user extends javax.swing.JPanel {
         jComboBox1 = new javax.swing.JComboBox<>();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        tf_pencarian = new javax.swing.JTextField();
+        btn_refresh = new javax.swing.JButton();
+        btn_cari = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jButton4 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        jTextField6 = new javax.swing.JTextField();
-        jComboBox5 = new javax.swing.JComboBox<>();
+        tabel_daftar_user = new javax.swing.JTable();
+        btn_edit = new javax.swing.JButton();
+        btn_delete = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -57,22 +157,17 @@ public class daftar_user extends javax.swing.JPanel {
         jTable2 = new javax.swing.JTable();
         jButton8 = new javax.swing.JButton();
         jButton9 = new javax.swing.JButton();
-        jPanel5 = new javax.swing.JPanel();
-        jLabel11 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
-        jTextField5 = new javax.swing.JTextField();
-        jLabel13 = new javax.swing.JLabel();
-        jTextField7 = new javax.swing.JTextField();
-        jButton10 = new javax.swing.JButton();
-        jLabel14 = new javax.swing.JLabel();
-        jLabel15 = new javax.swing.JLabel();
-        jTextField8 = new javax.swing.JTextField();
-        jLabel16 = new javax.swing.JLabel();
-        jLabel17 = new javax.swing.JLabel();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
-        jComboBox3 = new javax.swing.JComboBox<>();
-        jComboBox4 = new javax.swing.JComboBox<>();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        tf_id_user = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
+        tf_password = new javax.swing.JTextField();
+        btn_simpan = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        tf_username = new javax.swing.JTextField();
+        cb_type_user = new javax.swing.JComboBox<>();
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
@@ -92,22 +187,32 @@ public class daftar_user extends javax.swing.JPanel {
         jLabel1.setOpaque(true);
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1220, 60));
 
-        jTextField1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel1.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 360, 50));
+        tf_pencarian.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jPanel1.add(tf_pencarian, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 360, 50));
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(255, 255, 255));
-        jButton1.setText("REFRESH");
-        jButton1.setToolTipText("");
-        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(1040, 80, 150, 50));
+        btn_refresh.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_refresh.setForeground(new java.awt.Color(255, 255, 255));
+        btn_refresh.setText("REFRESH");
+        btn_refresh.setToolTipText("");
+        btn_refresh.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_refreshActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btn_refresh, new org.netbeans.lib.awtextra.AbsoluteConstraints(1040, 80, 150, 50));
 
-        jButton3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton3.setForeground(new java.awt.Color(255, 255, 255));
-        jButton3.setText("CARI");
-        jPanel1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 80, 100, 50));
+        btn_cari.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_cari.setForeground(new java.awt.Color(255, 255, 255));
+        btn_cari.setText("CARI");
+        btn_cari.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_cariActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btn_cari, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 80, 100, 50));
 
-        jTable1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tabel_daftar_user.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        tabel_daftar_user.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null},
                 {null, null, null, null, null},
@@ -126,97 +231,39 @@ public class daftar_user extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        jTable1.setRowHeight(35);
-        jScrollPane1.setViewportView(jTable1);
-        if (jTable1.getColumnModel().getColumnCount() > 0) {
-            jTable1.getColumnModel().getColumn(0).setMaxWidth(40);
-            jTable1.getColumnModel().getColumn(1).setResizable(false);
-            jTable1.getColumnModel().getColumn(2).setResizable(false);
+        tabel_daftar_user.setRowHeight(35);
+        jScrollPane1.setViewportView(tabel_daftar_user);
+        if (tabel_daftar_user.getColumnModel().getColumnCount() > 0) {
+            tabel_daftar_user.getColumnModel().getColumn(0).setMaxWidth(40);
+            tabel_daftar_user.getColumnModel().getColumn(1).setResizable(false);
+            tabel_daftar_user.getColumnModel().getColumn(2).setResizable(false);
         }
 
         jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 160, 1180, 670));
 
-        jButton4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton4.setForeground(new java.awt.Color(255, 255, 255));
-        jButton4.setText("EDIT");
-        jButton4.setToolTipText("");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        btn_edit.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_edit.setForeground(new java.awt.Color(255, 255, 255));
+        btn_edit.setText("EDIT");
+        btn_edit.setToolTipText("");
+        btn_edit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                btn_editActionPerformed(evt);
             }
         });
-        jPanel1.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 80, 150, 50));
+        jPanel1.add(btn_edit, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 80, 150, 50));
 
-        jButton5.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton5.setForeground(new java.awt.Color(255, 255, 255));
-        jButton5.setText("DELETE");
-        jButton5.setToolTipText("");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        btn_delete.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_delete.setForeground(new java.awt.Color(255, 255, 255));
+        btn_delete.setText("DELETE");
+        btn_delete.setToolTipText("");
+        btn_delete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                btn_deleteActionPerformed(evt);
             }
         });
-        jPanel1.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(880, 80, 150, 50));
+        jPanel1.add(btn_delete, new org.netbeans.lib.awtextra.AbsoluteConstraints(880, 80, 150, 50));
 
         add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 10, 1220, 870));
-
-        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
-        jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jLabel4.setBackground(new java.awt.Color(0, 0, 153));
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel4.setText("TAMBAH AKUN PEMBAYARAN");
-        jLabel4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
-        jLabel4.setOpaque(true);
-        jPanel2.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 400, 60));
-
-        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel5.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel5.setText("ID USER :");
-        jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 360, -1));
-
-        jTextField3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel2.add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, 360, 50));
-
-        jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel6.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel6.setText("USERNAME :");
-        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, 360, -1));
-
-        jTextField4.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel2.add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 360, 50));
-
-        jButton2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jButton2.setForeground(new java.awt.Color(255, 255, 255));
-        jButton2.setText("SIMPAN");
-        jPanel2.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 500, 360, 60));
-
-        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel7.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel7.setText("PASSWORD :");
-        jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 280, 360, -1));
-
-        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel9.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel9.setText("TYPE USER :");
-        jPanel2.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 380, 360, 30));
-
-        jTextField6.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel2.add(jTextField6, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 220, 360, 50));
-
-        jComboBox5.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jComboBox5.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox5ActionPerformed(evt);
-            }
-        });
-        jPanel2.add(jComboBox5, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 420, 360, 50));
-
-        add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 400, 870));
 
         jPanel3.setMinimumSize(new java.awt.Dimension(1660, 920));
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -302,94 +349,142 @@ public class daftar_user extends javax.swing.JPanel {
 
         jPanel3.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 10, 1220, 870));
 
-        jPanel5.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel5.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
-        jPanel5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel11.setBackground(new java.awt.Color(0, 0, 153));
-        jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel11.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel11.setText("TAMBAH MENU");
-        jLabel11.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
-        jLabel11.setOpaque(true);
-        jPanel5.add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 400, 60));
+        jLabel4.setBackground(new java.awt.Color(0, 0, 153));
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel4.setText("TAMBAH AKUN PEMBAYARAN");
+        jLabel4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        jLabel4.setOpaque(true);
+        jPanel2.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 400, 60));
 
-        jLabel12.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel12.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel12.setText("ID MENU :");
-        jPanel5.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 360, -1));
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        jLabel5.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel5.setText("ID USER :");
+        jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 360, -1));
 
-        jTextField5.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel5.add(jTextField5, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, 360, 50));
+        tf_id_user.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jPanel2.add(tf_id_user, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, 360, 50));
 
-        jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel13.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel13.setText("NAMA MENU :");
-        jPanel5.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, 360, -1));
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        jLabel6.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel6.setText("USERNAME :");
+        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, 360, -1));
 
-        jTextField7.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel5.add(jTextField7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 220, 360, 50));
+        tf_password.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jPanel2.add(tf_password, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 360, 50));
 
-        jButton10.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jButton10.setForeground(new java.awt.Color(255, 255, 255));
-        jButton10.setText("SIMPAN");
-        jPanel5.add(jButton10, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 740, 360, 60));
-
-        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel14.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel14.setText("JENIS KATEGORI :");
-        jPanel5.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 280, 360, -1));
-
-        jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel15.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel15.setText("HARGA :");
-        jPanel5.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 380, 360, -1));
-
-        jTextField8.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jTextField8.addActionListener(new java.awt.event.ActionListener() {
+        btn_simpan.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        btn_simpan.setForeground(new java.awt.Color(255, 255, 255));
+        btn_simpan.setText("SIMPAN");
+        btn_simpan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField8ActionPerformed(evt);
+                btn_simpanActionPerformed(evt);
             }
         });
-        jPanel5.add(jTextField8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 420, 360, 50));
+        jPanel2.add(btn_simpan, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 500, 360, 60));
 
-        jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel16.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel16.setText("STATUS :");
-        jPanel5.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 580, 360, -1));
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        jLabel7.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel7.setText("PASSWORD :");
+        jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 280, 360, -1));
 
-        jLabel17.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jLabel17.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel17.setText("STATUS :");
-        jPanel5.add(jLabel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 480, 360, -1));
+        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        jLabel9.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel9.setText("TYPE USER :");
+        jPanel2.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 380, 360, 30));
 
-        jTextArea2.setColumns(20);
-        jTextArea2.setRows(5);
-        jScrollPane4.setViewportView(jTextArea2);
+        tf_username.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jPanel2.add(tf_username, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 220, 360, 50));
 
-        jPanel5.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 620, 360, 100));
+        cb_type_user.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        cb_type_user.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jPanel2.add(cb_type_user, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 430, 360, 50));
 
-        jComboBox3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jComboBox3.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jPanel5.add(jComboBox3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 520, 360, 50));
-
-        jComboBox4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jComboBox4.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jPanel5.add(jComboBox4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 360, 50));
-
-        jPanel3.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 400, 870));
+        jPanel3.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 400, 870));
 
         add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+    private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton5ActionPerformed
+        int baris = tabel_daftar_user.getSelectedRow();
+        
+        if (baris == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Pilih data user yang ingin dihapus!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        String id = tabModel.getValueAt(baris, 1).toString();
+        String username = tabModel.getValueAt(baris, 2).toString();
+        
+        // Jangan biarkan user menghapus dirinya sendiri jika sedang login
+        // (Misalnya, jika Anda menambahkan fitur ini nanti)
+        if (username.equals(config.SessionManager.getUsername())) {
+             JOptionPane.showMessageDialog(this, 
+                "Anda tidak dapat menghapus akun yang sedang login!", "Aksi Ditolak", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        int konfirmasi = JOptionPane.showConfirmDialog(this,
+                "Apakah Anda yakin ingin menghapus user: " + username + "?",
+                "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        
+        if (konfirmasi == JOptionPane.YES_OPTION) {
+            String sql = "DELETE FROM data_user WHERE id = ?";
+            
+            try (Connection conn = KoneksiDB.getKoneksi();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                 
+                ps.setInt(1, Integer.parseInt(id));
+                ps.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Data user berhasil dihapus.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Muat ulang data
+                tampilData();
+                resetForm();
+                
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, 
+                    "Gagal menghapus data: " + e.getMessage(), 
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btn_deleteActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+    private void btn_editActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_editActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton4ActionPerformed
+        int baris = tabel_daftar_user.getSelectedRow();
+        
+        if (baris == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Pilih data user yang ingin diedit!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Ambil data dari tabel
+        String id = tabModel.getValueAt(baris, 1).toString();
+        String username = tabModel.getValueAt(baris, 2).toString();
+        String password = tabModel.getValueAt(baris, 3).toString();
+        String typeUser = tabModel.getValueAt(baris, 4).toString();
+        
+        // Masukkan data ke form
+        tf_id_user.setText(id);
+        tf_username.setText(username);
+        tf_password.setText(password);
+        cb_type_user.setSelectedItem(typeUser);
+        
+        // Ubah tombol
+        btn_simpan.setText("UPDATE");
+        tf_id_user.setEditable(false);
+    }//GEN-LAST:event_btn_editActionPerformed
 
     private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
         // TODO add your handling code here:
@@ -399,38 +494,161 @@ public class daftar_user extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton9ActionPerformed
 
-    private void jTextField8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField8ActionPerformed
+    private void btn_refreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_refreshActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField8ActionPerformed
+        tf_pencarian.setText("");
+        tampilData();
+        resetForm();
+    }//GEN-LAST:event_btn_refreshActionPerformed
 
-    private void jComboBox5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox5ActionPerformed
+    private void btn_cariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_cariActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox5ActionPerformed
+        String kataKunci = tf_pencarian.getText();
+        tabModel.setRowCount(0); // Kosongkan tabel
+        
+        // Cari berdasarkan ID (cast ke text), username, atau type_user
+        String sql = "SELECT * FROM data_user WHERE " +
+                     "CAST(id AS TEXT) ILIKE ? OR " +
+                     "username ILIKE ? OR " +
+                     "type_user ILIKE ?";
+        
+        try (Connection conn = KoneksiDB.getKoneksi();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+             
+            String keyword = "%" + kataKunci + "%";
+            ps.setString(1, keyword);
+            ps.setString(2, keyword);
+            ps.setString(3, keyword);
+            
+            ResultSet rs = ps.executeQuery();
+            
+            int no = 1;
+            while(rs.next()){
+                tabModel.addRow(new Object[]{
+                    no++,
+                    rs.getInt("id"),
+                    rs.getString("username"),
+                    rs.getString("password"),
+                    rs.getString("type_user")
+                });
+            }
+            
+            if (tabModel.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this, 
+                    "Data tidak ditemukan", "Pencarian", JOptionPane.INFORMATION_MESSAGE);
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Terjadi error saat mencari data: " + e.getMessage(), 
+                "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btn_cariActionPerformed
+
+    private void btn_simpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_simpanActionPerformed
+        // TODO add your handling code here:
+        String idStr = tf_id_user.getText(); // ===== PERUBAHAN ===== Ambil ID dari textfield
+        String username = tf_username.getText();
+        String password = tf_password.getText();
+        String typeUser = cb_type_user.getSelectedItem().toString();
+        
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Username dan Password tidak boleh kosong!", "Input Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int id; // ===== PERUBAHAN ===== Variabel untuk ID integer
+        try {
+             id = Integer.parseInt(idStr);
+        } catch (NumberFormatException e){
+             JOptionPane.showMessageDialog(this, 
+                "ID User tidak valid!", "Input Error", JOptionPane.WARNING_MESSAGE);
+             return;
+        }
+        
+        if (btn_simpan.getText().equals("SIMPAN")) {
+            // ===== PERUBAHAN ===== Tambahkan 'id' ke query INSERT
+            String sql = "INSERT INTO data_user (id, username, password, type_user) VALUES (?, ?, ?, ?)";
+            
+            try (Connection conn = KoneksiDB.getKoneksi();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                 
+                ps.setInt(1, id); // ===== PERUBAHAN ===== Set parameter ID
+                ps.setString(2, username);
+                ps.setString(3, password);
+                ps.setString(4, typeUser);
+                ps.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, 
+                    "User baru berhasil disimpan.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                
+            } catch (SQLException e) {
+                 if(e.getMessage().contains("data_user_pkey")) { // Cek primary key violation
+                    JOptionPane.showMessageDialog(this, 
+                        "ID User '" + id + "' sudah ada. Terjadi kesalahan pada ID otomatis.", 
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                 } else if(e.getMessage().contains("data_user_username_key")) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Username '" + username + "' sudah ada. Silakan gunakan username lain.", 
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "Gagal menyimpan data: " + e.getMessage(), 
+                        "Database Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            
+        } else {
+           // Mode UPDATE (Tidak perlu diubah)
+            String sql = "UPDATE data_user SET username = ?, password = ?, type_user = ? " +
+                         "WHERE id = ?";
+            
+            try (Connection conn = KoneksiDB.getKoneksi();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                 
+                ps.setString(1, username);
+                ps.setString(2, password);
+                ps.setString(3, typeUser);
+                ps.setInt(4, id); // WHERE clause sudah benar
+                
+                ps.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Data user berhasil diperbarui.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                
+            } catch (SQLException e) {
+                // ... (penanganan error update tetap sama) ...
+                 if(e.getMessage().contains("data_user_username_key")) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Username '" + username + "' sudah digunakan oleh user lain.", 
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "Gagal memperbarui data: " + e.getMessage(), 
+                        "Database Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+        
+        tampilData();
+        resetForm();
+    }//GEN-LAST:event_btn_simpanActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton10;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
+    private javax.swing.JButton btn_cari;
+    private javax.swing.JButton btn_delete;
+    private javax.swing.JButton btn_edit;
+    private javax.swing.JButton btn_refresh;
+    private javax.swing.JButton btn_simpan;
+    private javax.swing.JComboBox<String> cb_type_user;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
     private javax.swing.JButton jButton9;
     private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JComboBox<String> jComboBox3;
-    private javax.swing.JComboBox<String> jComboBox4;
-    private javax.swing.JComboBox<String> jComboBox5;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -441,20 +659,14 @@ public class daftar_user extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
-    private javax.swing.JTextArea jTextArea2;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField6;
-    private javax.swing.JTextField jTextField7;
-    private javax.swing.JTextField jTextField8;
+    private javax.swing.JTable tabel_daftar_user;
+    private javax.swing.JTextField tf_id_user;
+    private javax.swing.JTextField tf_password;
+    private javax.swing.JTextField tf_pencarian;
+    private javax.swing.JTextField tf_username;
     // End of variables declaration//GEN-END:variables
 }
