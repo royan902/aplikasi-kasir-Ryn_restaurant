@@ -8,6 +8,16 @@ package login;
  *
  * @author Acer Aspire Lite 15
  */
+import config.KoneksiDB; // Import kelas koneksi
+import admin.dashboard_admin; // Import dashboard admin
+import kasir.dashboard_kasir; // Import dashboard kasir
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+import config.SessionManager;
+
 public class halaman_login extends javax.swing.JFrame {
 
     /**
@@ -15,6 +25,7 @@ public class halaman_login extends javax.swing.JFrame {
      */
     public halaman_login() {
         initComponents();
+        
     }
 
     /**
@@ -100,6 +111,11 @@ public class halaman_login extends javax.swing.JFrame {
         btn_login.setBackground(new java.awt.Color(0, 0, 153));
         btn_login.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         btn_login.setText("Login");
+        btn_login.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_loginActionPerformed(evt);
+            }
+        });
         jPanel2.add(btn_login, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 320, 230, 40));
 
         jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(600, 300, 720, 480));
@@ -116,6 +132,87 @@ public class halaman_login extends javax.swing.JFrame {
     private void tf_usernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf_usernameActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_tf_usernameActionPerformed
+
+    private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
+        // TODO add your handling code here:
+        String username = tf_username.getText();
+        String password = tf_password.getText(); 
+
+        // Validasi input tidak boleh kosong
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username dan Password tidak boleh kosong!", "Input Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 2. Siapkan kueri dan koneksi
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        // Ambil semua data user agar bisa disimpan di session
+        String sql = "SELECT * FROM data_user WHERE username = ? AND password = ?";
+
+        try {
+            Connection conn = KoneksiDB.getKoneksi();
+            if (conn == null) {
+                JOptionPane.showMessageDialog(this, "Gagal terhubung ke database.", "Database Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 3. Gunakan PreparedStatement
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, username);
+            ps.setString(2, password);
+
+            // 4. Eksekusi kueri
+            rs = ps.executeQuery();
+
+            // 5. Proses hasil
+            if (rs.next()) {
+                // User ditemukan, ambil datanya
+                int id = rs.getInt("id"); // ===== BARU =====
+                String dbUsername = rs.getString("username"); // ===== BARU =====
+                String role = rs.getString("type_user");
+
+                // ===== BARU: BUAT SESSION =====
+                SessionManager.createSession(id, dbUsername, role);
+                // ==============================
+
+                if ("admin".equals(role)) {
+                    // Jika admin, buka dashboard admin
+                    JOptionPane.showMessageDialog(this, "Login Berhasil sebagai Admin!");
+                    dashboard_admin adminDash = new dashboard_admin();
+                    adminDash.setVisible(true);
+                    this.dispose(); // Tutup jendela login
+                    
+                } else if ("kasir".equals(role)) {
+                    // Jika kasir, buka dashboard kasir
+                    JOptionPane.showMessageDialog(this, "Login Berhasil sebagai Kasir!");
+                    dashboard_kasir kasirDash = new dashboard_kasir();
+                    kasirDash.setVisible(true);
+                    this.dispose(); // Tutup jendela login
+                    
+                } else {
+                    // Jika role tidak dikenal
+                    JOptionPane.showMessageDialog(this, "Tipe user tidak valid: " + role, "Login Error", JOptionPane.ERROR_MESSAGE);
+                }
+                
+            } else {
+                // User tidak ditemukan / password salah
+                JOptionPane.showMessageDialog(this, "Username atau Password salah!", "Login Gagal", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi error saat login: " + e.getMessage(), "SQL Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } finally {
+            // 6. Tutup ResultSet dan PreparedStatement
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }//GEN-LAST:event_btn_loginActionPerformed
 
     /**
      * @param args the command line arguments
