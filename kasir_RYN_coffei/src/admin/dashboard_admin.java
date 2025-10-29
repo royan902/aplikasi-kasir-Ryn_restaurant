@@ -8,6 +8,21 @@ package admin;
  *
  * @author Acer Aspire Lite 15
  */
+import config.SessionManager; // Menggunakan SessionManager proyek ini
+import login.halaman_login;
+import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter; // Tetap perlu untuk klik label
+import java.awt.event.MouseEvent;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+// Import semua panel Anda
+import admin.beranda;
+import admin.kategori_menu;
+import admin.daftar_menu;
+import admin.daftar_metode_pembayaran;
+import admin.daftar_user;
+import admin.laporan_transaksi;
+
 public class dashboard_admin extends javax.swing.JFrame {
 
     /**
@@ -15,6 +30,36 @@ public class dashboard_admin extends javax.swing.JFrame {
      */
     public dashboard_admin() {
         initComponents();
+        
+        label_username.setText(SessionManager.getUsername());
+        label_role.setText(SessionManager.getRole().toUpperCase());
+        
+        // 2. Mengatur Layout panel_utama_A (Tetap sama)
+        panel_utama_A.setLayout(new BorderLayout());
+        
+        // 3. Menampilkan panel 'beranda' sebagai default (Tetap sama)
+        // Kita ganti nama methodnya agar sama seperti contoh Anda
+        showPanel(new beranda());
+        
+        // 4. Menambahkan listener ke label judul (Tetap sama)
+        // (Ini adalah satu-satunya listener yang kita pasang manual
+        // karena label tidak punya ...ActionPerformed seperti tombol)
+        label_dashboard_admin.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Saat label diklik, muat panel beranda
+                showPanel(new beranda());
+            }
+        });
+        
+        
+    }
+    
+    private void showPanel(JPanel panel) {
+        panel_utama_A.removeAll();
+        panel_utama_A.add(panel, BorderLayout.CENTER);
+        panel_utama_A.revalidate();
+        panel_utama_A.repaint();
     }
 
     /**
@@ -29,20 +74,20 @@ public class dashboard_admin extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jButton4 = new javax.swing.JButton();
+        label_dashboard_admin = new javax.swing.JLabel();
+        btn_logout = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         label_username = new javax.swing.JLabel();
         label_role = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
-        jButton7 = new javax.swing.JButton();
-        jPanel3 = new javax.swing.JPanel();
+        btn_daftar_menu = new javax.swing.JButton();
+        btn_beranda = new javax.swing.JButton();
+        btn_kategori = new javax.swing.JButton();
+        btn_laporan_transaksi = new javax.swing.JButton();
+        btn_pembayaran = new javax.swing.JButton();
+        btn_daftar_user = new javax.swing.JButton();
+        panel_utama_A = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(1920, 1080));
@@ -61,16 +106,21 @@ public class dashboard_admin extends javax.swing.JFrame {
         jLabel2.setText("=");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 30, 80, 60));
 
-        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel3.setText("DASHBOARD ADMIIN");
-        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 30, 630, 60));
+        label_dashboard_admin.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        label_dashboard_admin.setForeground(new java.awt.Color(255, 255, 255));
+        label_dashboard_admin.setText("DASHBOARD ADMIIN");
+        jPanel1.add(label_dashboard_admin, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 20, 630, 80));
 
-        jButton4.setBackground(new java.awt.Color(0, 0, 102));
-        jButton4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton4.setForeground(new java.awt.Color(255, 255, 255));
-        jButton4.setText("LOG OUT");
-        jPanel1.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(1730, 40, 150, 40));
+        btn_logout.setBackground(new java.awt.Color(0, 0, 102));
+        btn_logout.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_logout.setForeground(new java.awt.Color(255, 255, 255));
+        btn_logout.setText("LOG OUT");
+        btn_logout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_logoutActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btn_logout, new org.netbeans.lib.awtextra.AbsoluteConstraints(1730, 40, 150, 40));
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(255, 255, 255));
@@ -103,61 +153,134 @@ public class dashboard_admin extends javax.swing.JFrame {
         jPanel2.setBackground(new java.awt.Color(153, 153, 153));
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jButton1.setBackground(new java.awt.Color(153, 153, 153));
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(0, 0, 0));
-        jButton1.setText("DAFTAR MENU");
-        jPanel2.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 140, 200, 50));
+        btn_daftar_menu.setBackground(new java.awt.Color(153, 153, 153));
+        btn_daftar_menu.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        btn_daftar_menu.setForeground(new java.awt.Color(0, 0, 0));
+        btn_daftar_menu.setText("DAFTAR MENU");
+        btn_daftar_menu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_daftar_menuActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_daftar_menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 140, 200, 50));
 
-        jButton2.setBackground(new java.awt.Color(153, 153, 153));
-        jButton2.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jButton2.setForeground(new java.awt.Color(0, 0, 0));
-        jButton2.setText("BERANDA");
-        jPanel2.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 200, 50));
+        btn_beranda.setBackground(new java.awt.Color(153, 153, 153));
+        btn_beranda.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        btn_beranda.setForeground(new java.awt.Color(0, 0, 0));
+        btn_beranda.setText("BERANDA");
+        btn_beranda.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_berandaActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_beranda, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 200, 50));
 
-        jButton3.setBackground(new java.awt.Color(153, 153, 153));
-        jButton3.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jButton3.setForeground(new java.awt.Color(0, 0, 0));
-        jButton3.setText("KATEGORI MENU");
-        jPanel2.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 80, 200, 50));
+        btn_kategori.setBackground(new java.awt.Color(153, 153, 153));
+        btn_kategori.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        btn_kategori.setForeground(new java.awt.Color(0, 0, 0));
+        btn_kategori.setText("KATEGORI MENU");
+        btn_kategori.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_kategoriActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_kategori, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 80, 200, 50));
 
-        jButton5.setBackground(new java.awt.Color(153, 153, 153));
-        jButton5.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jButton5.setForeground(new java.awt.Color(0, 0, 0));
-        jButton5.setText("TRANSAKSI");
-        jPanel2.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 320, 200, 50));
+        btn_laporan_transaksi.setBackground(new java.awt.Color(153, 153, 153));
+        btn_laporan_transaksi.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        btn_laporan_transaksi.setForeground(new java.awt.Color(0, 0, 0));
+        btn_laporan_transaksi.setText("TRANSAKSI");
+        btn_laporan_transaksi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_laporan_transaksiActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_laporan_transaksi, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 320, 200, 50));
 
-        jButton6.setBackground(new java.awt.Color(153, 153, 153));
-        jButton6.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jButton6.setForeground(new java.awt.Color(0, 0, 0));
-        jButton6.setText("METODE PEMBAYARAN");
-        jPanel2.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, 200, 50));
+        btn_pembayaran.setBackground(new java.awt.Color(153, 153, 153));
+        btn_pembayaran.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btn_pembayaran.setForeground(new java.awt.Color(0, 0, 0));
+        btn_pembayaran.setText("METODE PEMBAYARAN");
+        btn_pembayaran.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_pembayaranActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_pembayaran, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, 200, 50));
 
-        jButton7.setBackground(new java.awt.Color(153, 153, 153));
-        jButton7.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
-        jButton7.setForeground(new java.awt.Color(0, 0, 0));
-        jButton7.setText("DAFTAR USER");
-        jPanel2.add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 200, 50));
+        btn_daftar_user.setBackground(new java.awt.Color(153, 153, 153));
+        btn_daftar_user.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        btn_daftar_user.setForeground(new java.awt.Color(0, 0, 0));
+        btn_daftar_user.setText("DAFTAR USER");
+        btn_daftar_user.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_daftar_userActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_daftar_user, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 200, 50));
 
         getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 120, 220, 960));
 
-        jPanel3.setBackground(new java.awt.Color(255, 255, 255));
+        panel_utama_A.setBackground(new java.awt.Color(255, 255, 255));
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout panel_utama_ALayout = new javax.swing.GroupLayout(panel_utama_A);
+        panel_utama_A.setLayout(panel_utama_ALayout);
+        panel_utama_ALayout.setHorizontalGroup(
+            panel_utama_ALayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 1660, Short.MAX_VALUE)
         );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        panel_utama_ALayout.setVerticalGroup(
+            panel_utama_ALayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 920, Short.MAX_VALUE)
         );
 
-        getContentPane().add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 140, 1660, 920));
+        getContentPane().add(panel_utama_A, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 140, 1660, 920));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btn_logoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_logoutActionPerformed
+        // TODO add your handling code here:
+        int response = JOptionPane.showConfirmDialog(this, 
+            "Apakah Anda yakin ingin logout?", "Konfirmasi Logout", 
+            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        
+        if (response == JOptionPane.YES_OPTION) {
+            SessionManager.clearSession(); // Hapus sesi
+            new halaman_login().setVisible(true); // Buka login
+            this.dispose(); // Tutup dashboard ini
+        }
+    }//GEN-LAST:event_btn_logoutActionPerformed
+
+    private void btn_berandaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_berandaActionPerformed
+        // TODO add your handling code here:
+        showPanel(new beranda());
+    }//GEN-LAST:event_btn_berandaActionPerformed
+
+    private void btn_kategoriActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_kategoriActionPerformed
+        // TODO add your handling code here:
+        showPanel(new kategori_menu());
+    }//GEN-LAST:event_btn_kategoriActionPerformed
+
+    private void btn_daftar_menuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_daftar_menuActionPerformed
+        // TODO add your handling code here:
+        showPanel(new daftar_menu());
+    }//GEN-LAST:event_btn_daftar_menuActionPerformed
+
+    private void btn_pembayaranActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_pembayaranActionPerformed
+        // TODO add your handling code here:
+        showPanel(new daftar_metode_pembayaran());
+    }//GEN-LAST:event_btn_pembayaranActionPerformed
+
+    private void btn_daftar_userActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_daftar_userActionPerformed
+        // TODO add your handling code here:
+        showPanel(new daftar_user());
+    }//GEN-LAST:event_btn_daftar_userActionPerformed
+
+    private void btn_laporan_transaksiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_laporan_transaksiActionPerformed
+        // TODO add your handling code here:
+        showPanel(new laporan_transaksi());
+    }//GEN-LAST:event_btn_laporan_transaksiActionPerformed
 
     /**
      * @param args the command line arguments
@@ -195,22 +318,22 @@ public class dashboard_admin extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
-    private javax.swing.JButton jButton7;
+    private javax.swing.JButton btn_beranda;
+    private javax.swing.JButton btn_daftar_menu;
+    private javax.swing.JButton btn_daftar_user;
+    private javax.swing.JButton btn_kategori;
+    private javax.swing.JButton btn_laporan_transaksi;
+    private javax.swing.JButton btn_logout;
+    private javax.swing.JButton btn_pembayaran;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
+    private javax.swing.JLabel label_dashboard_admin;
     private javax.swing.JLabel label_role;
     private javax.swing.JLabel label_username;
+    private javax.swing.JPanel panel_utama_A;
     // End of variables declaration//GEN-END:variables
 }

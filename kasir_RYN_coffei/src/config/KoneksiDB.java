@@ -14,27 +14,34 @@ import java.sql.SQLException;
 import javax.swing.JOptionPane;
 
 public class KoneksiDB {
-    private static Connection koneksi;
+    
+    // ===== PERUBAHAN BESAR DI SINI =====
+    // Kita tidak lagi menyimpan koneksi dalam variabel statis.
+    // private static Connection koneksi; <-- BARIS INI DIHAPUS
 
+    /**
+     * Method ini sekarang SELALU MEMBUAT KONEKSI BARU.
+     * Ini adalah cara yang benar untuk bekerja dengan try-with-resources
+     * di setiap panel/form.
+     */
     public static Connection getKoneksi() {
-        if (koneksi == null) {
-            try {
-                // Pastikan nama database Anda sudah benar
-                String url = "jdbc:postgresql://localhost:5432/db_ryn_coffee";
-                String user = "postgres"; // Ganti dengan username PostgreSQL Anda
-                String password = "muha8420"; // GANTI DENGAN PASSWORD ANDA
+        Connection koneksiBaru = null; // Buat variabel lokal
+        try {
+            String url = "jdbc:postgresql://localhost:5432/db_ryn_coffee";
+            String user = "postgres"; // Ganti dengan username PostgreSQL Anda
+            String password = "muha8420"; // Password Anda dari file sebelumnya
 
-                // Tidak perlu Class.forName() di JDBC modern
-                koneksi = DriverManager.getConnection(url, user, password);
-                System.out.println("Koneksi ke PostgreSQL berhasil!");
-                
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(null, 
-                    "Gagal koneksi ke database: " + e.getMessage(), 
-                    "Database Error", 
-                    JOptionPane.ERROR_MESSAGE);
-            }
+            koneksiBaru = DriverManager.getConnection(url, user, password);
+            // System.out.println("Koneksi baru ke PostgreSQL berhasil dibuat!");
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, 
+                "Gagal koneksi ke database: " + e.getMessage(), 
+                "Database Error", 
+                JOptionPane.ERROR_MESSAGE);
         }
-        return koneksi;
+        
+        return koneksiBaru; // Kembalikan koneksi yang baru dibuat
     }
+    // ===================================
 }

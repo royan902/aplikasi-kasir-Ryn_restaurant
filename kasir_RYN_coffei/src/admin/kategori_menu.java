@@ -8,13 +8,117 @@ package admin;
  *
  * @author Acer Aspire Lite 15
  */
+import config.KoneksiDB; // Import koneksi database Anda
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 public class kategori_menu extends javax.swing.JPanel {
 
     /**
      * Creates new form kategoti
      */
+    private DefaultTableModel tabModel;
+    
     public kategori_menu() {
         initComponents();
+        
+        setupTabel(); // Menyiapkan model tabel
+        tampilData(); // Memuat data saat panel dibuka
+        resetForm();  // Membersihkan form dan menonaktifkan ID
+        buatIdOtomatis();
+    }
+    
+    private void setupTabel() {
+        // Membuat model tabel baru
+        tabModel = new DefaultTableModel();
+        tabModel.addColumn("NO.");
+        tabModel.addColumn("ID KATEGORI");
+        tabModel.addColumn("NAMA KATEGORI");
+        
+        // Menerapkan model ke JTable
+        tabel_daftar_kategori.setModel(tabModel);
+        
+        // Mengatur lebar kolom "NO."
+        tabel_daftar_kategori.getColumnModel().getColumn(0).setMaxWidth(40);
+    }
+    
+    // ===== METHOD BARU: Menampilkan Data (Fitur 2) =====
+    private void tampilData() {
+        // Hapus data lama di tabel
+        tabModel.setRowCount(0);
+        
+        // Ambil koneksi
+        try (Connection conn = KoneksiDB.getKoneksi()) {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT * FROM kategori ORDER BY id_kategori ASC";
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            int no = 1; // Untuk nomor urut
+            while(rs.next()){
+                // Tambahkan data ke model tabel
+                tabModel.addRow(new Object[]{
+                    no++,
+                    rs.getString("id_kategori"),
+                    rs.getString("nama_kategori")
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Terjadi error saat memuat data: " + e.getMessage(), 
+                "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // ===== METHOD BARU: Reset Form =====
+    private void resetForm() {
+        tf_id_kategori.setText("");
+        tf_nama_kategori.setText("");
+        
+        // Fitur 1: Textfield ID tidak bisa diedit
+        tf_id_kategori.setEditable(false); 
+        
+        // Mengembalikan tombol simpan ke "SIMPAN" (jika sebelumnya "UPDATE")
+        btn_simpan.setText("SIMPAN");
+    }
+
+    // ===== METHOD BARU: ID Otomatis (Fitur 1) =====
+    private void buatIdOtomatis() {
+        try (Connection conn = KoneksiDB.getKoneksi()) {
+            Statement stmt = conn.createStatement();
+            // Query untuk mengambil 3 digit terakhir dari ID terbesar
+            String sql = "SELECT MAX(RIGHT(id_kategori, 3)) AS no_terakhir FROM kategori";
+            ResultSet rs = stmt.executeQuery(sql);
+
+            if (rs.next()) {
+                String noTerakhir = rs.getString("no_terakhir");
+                int noUrut;
+
+                if (noTerakhir == null) {
+                    // Jika tidak ada data, mulai dari 1
+                    noUrut = 1;
+                } else {
+                    // Jika ada data, tambah 1
+                    noUrut = Integer.parseInt(noTerakhir) + 1;
+                }
+
+                // Format ID menjadi "001", "002", dst.
+                String idBaru = String.format("%03d", noUrut);
+                tf_id_kategori.setText(idBaru);
+                
+            } else {
+                // Default jika tabel benar-benar kosong
+                tf_id_kategori.setText("001");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Gagal membuat ID otomatis: " + e.getMessage(), 
+                "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**
@@ -28,18 +132,20 @@ public class kategori_menu extends javax.swing.JPanel {
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        tf_pencarian = new javax.swing.JTextField();
+        btn_refresh = new javax.swing.JButton();
+        btn_cari = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tabel_daftar_kategori = new javax.swing.JTable();
+        btn_edit = new javax.swing.JButton();
+        btn_delete = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
+        tf_id_kategori = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
+        tf_nama_kategori = new javax.swing.JTextField();
+        btn_simpan = new javax.swing.JButton();
 
         setMinimumSize(new java.awt.Dimension(1660, 920));
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -57,22 +163,32 @@ public class kategori_menu extends javax.swing.JPanel {
         jLabel1.setOpaque(true);
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1220, 60));
 
-        jTextField1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel1.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 360, 50));
+        tf_pencarian.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jPanel1.add(tf_pencarian, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 360, 50));
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(255, 255, 255));
-        jButton1.setText("REFRESH");
-        jButton1.setToolTipText("");
-        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 80, 150, 50));
+        btn_refresh.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_refresh.setForeground(new java.awt.Color(255, 255, 255));
+        btn_refresh.setText("REFRESH");
+        btn_refresh.setToolTipText("");
+        btn_refresh.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_refreshActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btn_refresh, new org.netbeans.lib.awtextra.AbsoluteConstraints(1040, 80, 150, 50));
 
-        jButton3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton3.setForeground(new java.awt.Color(255, 255, 255));
-        jButton3.setText("CARI");
-        jPanel1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 80, 100, 50));
+        btn_cari.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_cari.setForeground(new java.awt.Color(255, 255, 255));
+        btn_cari.setText("CARI");
+        btn_cari.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_cariActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btn_cari, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 80, 100, 50));
 
-        jTable1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tabel_daftar_kategori.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        tabel_daftar_kategori.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null},
                 {null, null, null},
@@ -91,15 +207,37 @@ public class kategori_menu extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        jTable1.setRowHeight(35);
-        jScrollPane1.setViewportView(jTable1);
-        if (jTable1.getColumnModel().getColumnCount() > 0) {
-            jTable1.getColumnModel().getColumn(0).setMaxWidth(40);
-            jTable1.getColumnModel().getColumn(1).setResizable(false);
-            jTable1.getColumnModel().getColumn(2).setResizable(false);
+        tabel_daftar_kategori.setRowHeight(35);
+        jScrollPane1.setViewportView(tabel_daftar_kategori);
+        if (tabel_daftar_kategori.getColumnModel().getColumnCount() > 0) {
+            tabel_daftar_kategori.getColumnModel().getColumn(0).setMaxWidth(40);
+            tabel_daftar_kategori.getColumnModel().getColumn(1).setResizable(false);
+            tabel_daftar_kategori.getColumnModel().getColumn(2).setResizable(false);
         }
 
         jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 160, 1180, 670));
+
+        btn_edit.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_edit.setForeground(new java.awt.Color(255, 255, 255));
+        btn_edit.setText("EDIT");
+        btn_edit.setToolTipText("");
+        btn_edit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_editActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btn_edit, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 80, 150, 50));
+
+        btn_delete.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btn_delete.setForeground(new java.awt.Color(255, 255, 255));
+        btn_delete.setText("DELETE");
+        btn_delete.setToolTipText("");
+        btn_delete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_deleteActionPerformed(evt);
+            }
+        });
+        jPanel1.add(btn_delete, new org.netbeans.lib.awtextra.AbsoluteConstraints(880, 80, 150, 50));
 
         add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 10, 1220, 870));
 
@@ -121,30 +259,210 @@ public class kategori_menu extends javax.swing.JPanel {
         jLabel5.setText("ID KATEGORI :");
         jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 360, -1));
 
-        jTextField3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel2.add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, 360, 50));
+        tf_id_kategori.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jPanel2.add(tf_id_kategori, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, 360, 50));
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(0, 0, 0));
         jLabel6.setText("NAMA KATEGORI :");
         jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 190, 360, -1));
 
-        jTextField4.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jPanel2.add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 230, 360, 50));
+        tf_nama_kategori.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jPanel2.add(tf_nama_kategori, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 230, 360, 50));
 
-        jButton2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jButton2.setForeground(new java.awt.Color(255, 255, 255));
-        jButton2.setText("SIMPAN");
-        jPanel2.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 310, 360, 60));
+        btn_simpan.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        btn_simpan.setForeground(new java.awt.Color(255, 255, 255));
+        btn_simpan.setText("SIMPAN");
+        btn_simpan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_simpanActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_simpan, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 310, 360, 60));
 
         add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 400, 870));
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btn_editActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_editActionPerformed
+        // TODO add your handling code here:
+        int baris = tabel_daftar_kategori.getSelectedRow();
+        
+        // Cek apakah ada baris yang dipilih
+        if (baris == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Pilih data yang ingin diedit!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Ambil data dari baris yang dipilih
+        String id = tabModel.getValueAt(baris, 1).toString();
+        String nama = tabModel.getValueAt(baris, 2).toString();
+        
+        // Masukkan data ke form
+        tf_id_kategori.setText(id);
+        tf_nama_kategori.setText(nama);
+        
+        // Ubah teks tombol simpan menjadi "UPDATE"
+        btn_simpan.setText("UPDATE");
+        // ID tetap tidak bisa diedit
+        tf_id_kategori.setEditable(false);
+    }//GEN-LAST:event_btn_editActionPerformed
+
+    private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
+        // TODO add your handling code here:
+        int baris = tabel_daftar_kategori.getSelectedRow();
+        
+        if (baris == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Pilih data yang ingin dihapus!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        String id = tabModel.getValueAt(baris, 1).toString();
+        
+        // Konfirmasi penghapusan
+        int konfirmasi = JOptionPane.showConfirmDialog(this,
+                "Apakah Anda yakin ingin menghapus data dengan ID: " + id + "?",
+                "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        
+        if (konfirmasi == JOptionPane.YES_OPTION) {
+            String sql = "DELETE FROM kategori WHERE id_kategori = ?";
+            
+            try (Connection conn = KoneksiDB.getKoneksi();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                 
+                ps.setString(1, id);
+                ps.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Data berhasil dihapus.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Muat ulang data
+                tampilData();
+                resetForm();
+                buatIdOtomatis();
+                
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, 
+                    "Gagal menghapus data: " + e.getMessage(), 
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btn_deleteActionPerformed
+
+    private void btn_simpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_simpanActionPerformed
+        // TODO add your handling code here:
+        String id = tf_id_kategori.getText();
+        String nama = tf_nama_kategori.getText();
+        
+        if (nama.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Nama Kategori tidak boleh kosong!", "Input Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Cek apakah mode "SIMPAN" (Create) atau "UPDATE" (Update)
+        if (btn_simpan.getText().equals("SIMPAN")) {
+            // --- Fitur 1: Tambah Data (Create) ---
+            String sql = "INSERT INTO kategori (id_kategori, nama_kategori) VALUES (?, ?)";
+            
+            try (Connection conn = KoneksiDB.getKoneksi();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                 
+                ps.setString(1, id);
+                ps.setString(2, nama);
+                ps.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Data kategori baru berhasil disimpan.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, 
+                    "Gagal menyimpan data: " + e.getMessage(), 
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+            
+        } else {
+            // --- Fitur 3: Edit Data (Update) ---
+            String sql = "UPDATE kategori SET nama_kategori = ? WHERE id_kategori = ?";
+            
+            try (Connection conn = KoneksiDB.getKoneksi();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                 
+                ps.setString(1, nama);
+                ps.setString(2, id); // WHERE clause
+                ps.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Data kategori berhasil diperbarui.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, 
+                    "Gagal memperbarui data: " + e.getMessage(), 
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        
+        // Setelah simpan/update, kembalikan ke keadaan awal
+        tampilData();
+        resetForm();
+        buatIdOtomatis();
+    }//GEN-LAST:event_btn_simpanActionPerformed
+
+    private void btn_cariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_cariActionPerformed
+        // TODO add your handling code here:
+        String kataKunci = tf_pencarian.getText();
+        
+        // Hapus data lama
+        tabModel.setRowCount(0);
+        
+        String sql = "SELECT * FROM kategori WHERE " +
+                     "id_kategori LIKE ? OR " +
+                     "nama_kategori LIKE ?";
+        
+        try (Connection conn = KoneksiDB.getKoneksi();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+             
+            ps.setString(1, "%" + kataKunci + "%");
+            ps.setString(2, "%" + kataKunci + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            
+            int no = 1;
+            while(rs.next()){
+                tabModel.addRow(new Object[]{
+                    no++,
+                    rs.getString("id_kategori"),
+                    rs.getString("nama_kategori")
+                });
+            }
+            
+            if (tabModel.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this, "Data tidak ditemukan", "Pencarian", JOptionPane.INFORMATION_MESSAGE);
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Terjadi error saat mencari data: " + e.getMessage(), 
+                "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btn_cariActionPerformed
+
+    private void btn_refreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_refreshActionPerformed
+        // TODO add your handling code here:
+        tampilData();
+        resetForm();
+        buatIdOtomatis();
+        tf_pencarian.setText("");
+    }//GEN-LAST:event_btn_refreshActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JButton btn_cari;
+    private javax.swing.JButton btn_delete;
+    private javax.swing.JButton btn_edit;
+    private javax.swing.JButton btn_refresh;
+    private javax.swing.JButton btn_simpan;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -152,9 +470,9 @@ public class kategori_menu extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
+    private javax.swing.JTable tabel_daftar_kategori;
+    private javax.swing.JTextField tf_id_kategori;
+    private javax.swing.JTextField tf_nama_kategori;
+    private javax.swing.JTextField tf_pencarian;
     // End of variables declaration//GEN-END:variables
 }
